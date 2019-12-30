@@ -10,7 +10,10 @@ from tempfile import (
 import tempfile
 import struct
 
-from pydub import AudioSegment
+from pydub import (
+    AudioSegment,
+    AudioBuffer
+)
 from pydub.audio_segment import extract_wav_headers
 from pydub.utils import (
     db_to_float,
@@ -1024,6 +1027,46 @@ class AudioSegmentTests(unittest.TestCase):
         tempfile.tempdir = orig_tmpdir
         os.rmdir(new_tmpdir)
 
+class AudioBufferTests(unittest.TestCase):
+
+    def setUp(self):
+        global test1, test2, test3, testparty, testdcoffset
+        if not test1:
+            a = os.path.join(data_dir, 'test1.mp3')
+            test1 = AudioSegment.from_mp3(os.path.join(data_dir, 'test1.mp3'))
+            test2 = AudioSegment.from_mp3(os.path.join(data_dir, 'test2.mp3'))
+            test3 = AudioSegment.from_mp3(os.path.join(data_dir, 'test3.mp3'))
+            testdcoffset = AudioSegment.from_mp3(
+                os.path.join(data_dir, 'test-dc_offset.wav'))
+            testparty = AudioSegment.from_mp3(
+                os.path.join(data_dir, 'party.mp3'))
+
+        self.seg1 = test1
+        self.seg2 = test2
+        self.seg3 = test3
+        self.mp3_seg_party = testparty
+        self.seg_dc_offset = testdcoffset
+
+        self.ogg_file_path = os.path.join(data_dir, 'bach.ogg')
+        self.mp4_file_path = os.path.join(data_dir, 'creative_common.mp4')
+        self.mp3_file_path = os.path.join(data_dir, 'party.mp3')
+        self.webm_file_path = os.path.join(data_dir, 'test5.webm')
+
+        self.jpg_cover_path = os.path.join(data_dir, 'cover.jpg')
+        self.png_cover_path = os.path.join(data_dir, 'cover.png')
+
+    def test_lossless_conversion(self):
+        buf = AudioBuffer(self.seg1)
+        seg = buf.segment()
+        self.assertEqual(self.seg1, seg)
+
+    def test_identical_frame_count(self):
+        buf = AudioBuffer(self.seg1)
+        self.assertEqual(self.seg1.frame_count(), buf.frame_count())
+
+    def test_identical_time_conversion(self):
+        buf = AudioBuffer(self.seg1)
+        self.assertEqual(self.seg1.frame_count(456), buf.frame_count(456))
 
 class SilenceTests(unittest.TestCase):
 
